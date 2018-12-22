@@ -10,7 +10,7 @@ public class PlotMaker extends JComponent{
 	
 	private BondTrade myBondTrade;
 	private int xColumn, yColumn;
-	private int axisGap, height, width, hatchedLineOffset, numofhatches, yOffsetforletters,xOffsetforletters;
+	private int axisGap, height, width, hatchedLineOffset, numofhatches, yOffsetforletters,xOffsetforletters, pointDimensions;
 	
 	 
 	public PlotMaker(){
@@ -41,19 +41,21 @@ public class PlotMaker extends JComponent{
 		numofhatches =10;
 		yOffsetforletters = 5;
 		xOffsetforletters = 25;
+		pointDimensions = 5;
 	}
 	
 	public void paintComponent(Graphics g){
-		
+		 super.paintComponent(g);
+		 
 		if (myBondTrade != null) {
 			calculateDimensions();
 			
 			double xMax = myBondTrade.getMaxValue(xColumn);
 			double xMin = myBondTrade.getMinValue(xColumn);
-			
+			double xLabelOffset = xMax/10;
+		
 			double yMax = myBondTrade.getMaxValue(yColumn);
 			double yMin = myBondTrade.getMinValue(yColumn);
-			double xLabelOffset = xMax/10;
 			double yLabelOffset = yMax/10;
 			
 			Graphics2D g2 = (Graphics2D)g;
@@ -79,8 +81,7 @@ public class PlotMaker extends JComponent{
 				g2.drawString(String.format("%.1f", xLabel), x1-xOffsetforletters, y0 + yOffsetforletters);
 		      }
 
-		      // and for x axis
-		    
+		      //X axis:
 		      for (int i = 0; i <= numofhatches; i++) {
 		         int x0 = axisGap + ((width - (axisGap * 2)) / numofhatches)*i ;
 		         int y0 = height - axisGap;
@@ -103,7 +104,6 @@ public class PlotMaker extends JComponent{
 			for (int index = 0; index < myBondTrade.getRowCounter()-1; index++){
 				Double xPoint = myBondTrade.getColumnValue(xColumn, index);
 				Double yPoint = myBondTrade.getColumnValue(yColumn, index);
-				
 	
 				double xOffset = xPoint - xMin;
 				double yOffset = yPoint - yMin;
@@ -114,12 +114,15 @@ public class PlotMaker extends JComponent{
 	
 				// find the proportion between min/max
 	
-				double x = xResult * width;
-				double y = yResult * height;
+				double x = (xResult * width + axisGap);
+				double y = height - (yResult * height + axisGap);
+				System.out.println("xPoint: " + xPoint + ", x: " + x);
+				System.out.println("yPoint: " + yPoint + ", y: " + y);
 				
 				
-				
-				Ellipse2D.Double e = new Ellipse2D.Double(y,x, 5, 5);
+				Ellipse2D.Double e = new Ellipse2D.Double(x , y, pointDimensions, pointDimensions);
+				System.out.println("Circle x: " +e.x + " y: " + e.y);
+
 				
 				g2.draw(e);
 				g2.fill(e);	
