@@ -1,6 +1,8 @@
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -20,7 +22,8 @@ public class Main extends JFrame implements ActionListener{
 	private PlotMaker plotPanel;	
 	private JComboBox<String> xBox, yBox;
 	private JTextField filenameField, detailField;
-	private BondTrade myBondTrade = new BondTrade();
+	BondTrade myBondTrade = new BondTrade();
+	
 	
 	
 	public static void main(String[] args) {
@@ -68,19 +71,44 @@ public class Main extends JFrame implements ActionListener{
 				
 		//South (lower) Panel (plot options)
 		xBox = new JComboBox<String>();
+		xBox.addItemListener(new ItemListener() {
+					@Override
+					public void itemStateChanged(ItemEvent arg0) {
+						int xColumnIndex = xBox.getSelectedIndex();
+						if (xColumnIndex != -1) {
+							System.out.println("Changed x axis");
+							plotPanel.setXColumn(xColumnIndex);
+							}
+						plotPanel.repaint();
+						
+					}
+				});
 		southPanel.add(xBox);
 		
+		
 		yBox = new JComboBox<String>();
-		southPanel.add(yBox);
+		yBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent arg0) {
+				int yColumnIndex = yBox.getSelectedIndex();
+				if (yColumnIndex != -1) {
+					System.out.println("Changed x axis");
+					plotPanel.setYColumn(yColumnIndex);
+					}
+				plotPanel.repaint();
 				
+			}
+		});
+		southPanel.add(yBox);
+		
 		detailField = new JTextField("Trade Details.");
 		detailField.setEditable(false);
 		detailField.setHorizontalAlignment(JTextField.CENTER);
 		detailField.setSize(250, 50);
 		southPanel.add(detailField);
 				
-				//At the end
-				this.add(mainPanel);
+		//At the end
+		this.add(mainPanel);
 		
 	}
 
@@ -92,7 +120,9 @@ public class Main extends JFrame implements ActionListener{
 			
 		if (source == openButton){ //if 'Open' Button was pressed
 			System.out.println("Open Button"); 
+			resetFileData();
 			try {
+				
 				processFile();
 			} catch (FileNotFoundException e1) {
 				System.out.print("Error while processing file - file not found");
@@ -116,7 +146,6 @@ public class Main extends JFrame implements ActionListener{
 			filenameField.setText("File Name: " + inputFile.getName());
 			
 			Scanner fileScanner = new Scanner(inputFile);
-			
 			while (fileScanner.hasNextLine()) {
 				myBondTrade.addData(fileScanner.nextLine());	
 			}
@@ -124,15 +153,22 @@ public class Main extends JFrame implements ActionListener{
 			
 			//get x and y column and add them
 			ArrayList<String> bondTradeHeaders = myBondTrade.getHeaders();
-			for (int i=0; i < bondTradeHeaders.size(); i++)  {
-				xBox.addItem(bondTradeHeaders.get(i));
-				yBox.addItem(bondTradeHeaders.get(i).toString());
+			for (String header: myBondTrade.getHeaders())  {
+				xBox.addItem(header);
+				yBox.addItem(header);
 			}
 
 			plotPanel.loadData(myBondTrade);
 			
 			
 		}
+	}
+	
+	private void resetFileData(){
+		myBondTrade = new BondTrade();
+		xBox.removeAllItems();
+		yBox.removeAllItems();
+		
 	}
 
 }
