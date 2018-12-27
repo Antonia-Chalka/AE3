@@ -1,8 +1,12 @@
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -18,12 +22,15 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class Main extends JFrame implements ActionListener{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JButton openButton, quitButton;	
 	private PlotMaker plotPanel;	
 	private JComboBox<String> xBox, yBox;
 	private JTextField filenameField, detailField;
 	BondTrade myBondTrade = new BondTrade();
-	
 	
 	
 	public static void main(String[] args) {
@@ -34,10 +41,10 @@ public class Main extends JFrame implements ActionListener{
 	
 	public Main() {
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-		this.setSize(500, 500);
-		
+		this.setPreferredSize(new Dimension(600, 600));
 		setup();
 		
+		pack();
 		this.setVisible(true);
 	}
 	
@@ -66,6 +73,14 @@ public class Main extends JFrame implements ActionListener{
 				
 		//Middle Panel (CHANGE)
 		plotPanel = new PlotMaker();
+		plotPanel.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				// TODO Auto-generated method stub
+				checkMouse(e);
+				System.out.println("Clicked!");
+			}
+			
+		});
 		mainPanel.add(plotPanel, BorderLayout.CENTER);
 				
 				
@@ -79,8 +94,7 @@ public class Main extends JFrame implements ActionListener{
 							System.out.println("Changed x axis");
 							plotPanel.setXColumn(xColumnIndex);
 							}
-						plotPanel.repaint();
-						
+						plotPanel.repaint();		
 					}
 				});
 		southPanel.add(xBox);
@@ -104,12 +118,13 @@ public class Main extends JFrame implements ActionListener{
 		detailField = new JTextField("Trade Details.");
 		detailField.setEditable(false);
 		detailField.setHorizontalAlignment(JTextField.CENTER);
-		detailField.setSize(250, 50);
+		detailField.setPreferredSize(new Dimension (250, 50));
 		southPanel.add(detailField);
-				
+		
+		southPanel.setPreferredSize(new Dimension(40, 70));
+		
 		//At the end
 		this.add(mainPanel);
-		
 	}
 
 	@Override
@@ -152,14 +167,12 @@ public class Main extends JFrame implements ActionListener{
 			fileScanner.close();
 			
 			//get x and y column and add them
-			ArrayList<String> bondTradeHeaders = myBondTrade.getHeaders();
 			for (String header: myBondTrade.getHeaders())  {
 				xBox.addItem(header);
 				yBox.addItem(header);
 			}
 
 			plotPanel.loadData(myBondTrade);
-			
 			
 		}
 	}
@@ -169,6 +182,20 @@ public class Main extends JFrame implements ActionListener{
 		xBox.removeAllItems();
 		yBox.removeAllItems();
 		
+	}
+	
+	public void checkMouse(MouseEvent e) {
+		System.out.println("Checking clicks...");
+		int index=0;
+		for (Ellipse2D.Double point : plotPanel.returnShapes()) {
+			
+			if (point.contains(e.getPoint())) {
+				 System.out.println("Found click!");
+				 detailField.setText( myBondTrade.getBondDetails(index));
+			index++;	 
+			}
+		System.out.println(index);
+		}
 	}
 
 }

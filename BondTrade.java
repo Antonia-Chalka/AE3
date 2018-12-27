@@ -52,7 +52,7 @@ public class BondTrade {
 		return headers;
 	}
 	
-	public ArrayList<ArrayList<Double>> createAndExportData(){
+	public ArrayList<ArrayList<Double>> createData(){
 		
 		return allData;
 	}
@@ -60,9 +60,9 @@ public class BondTrade {
 	public String getBondDetails(int index){
 		
 		String details = "Details of selected Trade: \n"
-				+ headers.get(0) + yield.get(index) 
-				+ headers.get(1)  + daysToMaturity.get(index) 
-				+ headers.get(2)  + amountCHF.get(index) ;
+				+ headers.get(0) + ": " + yield.get(index) + " \n"
+				+ headers.get(1)  + ": " + daysToMaturity.get(index) + " \n"
+				+ headers.get(2)  + ": "+ amountCHF.get(index) + " \n";
 		return details;
 	}
 	

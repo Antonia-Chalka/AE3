@@ -13,10 +13,12 @@ public class PlotMaker extends JComponent{
 	private int axisGap, height, width, hatchedLineOffset, numofhatches, yOffsetforletters,xOffsetforletters, pointDimensions;
 	private double xMax, yMax, xMin, yMin;
 	private double xValuesRange , yValuesRange, xGraphValuesRange, yGraphValuesRange;
+	private ArrayList<Ellipse2D.Double> shapes;
 	
 	public PlotMaker(){
 		xColumn = 0;
 		yColumn = 0;
+		shapes = new ArrayList<>();
 	}
 	
 	public void loadData(BondTrade myBondTrade) {
@@ -24,6 +26,9 @@ public class PlotMaker extends JComponent{
 		repaint();
 	}
 
+	public ArrayList<Ellipse2D.Double> returnShapes(){
+		return shapes;
+	}
 	
 	public void setXColumn(int x) {
 		xColumn = x;
@@ -120,20 +125,16 @@ public class PlotMaker extends JComponent{
 				double x = xResult + axisGap;
 				double y = (height - yResult) - axisGap;
 						
-				System.out.println("xPoint: " + xPoint + ", x: " + x + " Width: " + width);
-				System.out.println("yPoint: " + yPoint + ", y: " + y + " Height:" + height);
-				
-				
-				
 				
 				Ellipse2D.Double e = new Ellipse2D.Double(x-(pointDimensions/2), y-(pointDimensions/2), pointDimensions, pointDimensions);
-				System.out.println("Circle x: " +e.x + " y: " + e.y);
+				shapes.add(e);
 
 				
 				g2.draw(e);
 				g2.fill(e);	
 			}
 		}
+		
 		
 		
 		
