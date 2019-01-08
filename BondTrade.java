@@ -57,7 +57,16 @@ public class BondTrade {
 		return allData;
 	}
 	
-	public String getBondDetails(int index){
+	
+	/* 0 yield
+	 * 1 daysToMaturity
+	 * 2 amountCHF
+	 */
+	
+	public String getBondDetails(double x, double y, int xColumn, int yColumn){
+		
+		int index = 0;
+		
 		
 		String details = "Details of selected Trade: \n"
 				+ headers.get(0) + ": " + yield.get(index) + " \n"
