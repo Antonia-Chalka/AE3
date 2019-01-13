@@ -70,7 +70,6 @@ public class BondTrade {
 				+ headers.get(0) + ": " + yield.get(index) + System.lineSeparator()
 				+ headers.get(1)  + ": " + daysToMaturity.get(index) + System.lineSeparator()
 				+ headers.get(2)  + ": "+ amountCHF.get(index);
-		System.out.println(details);
 		return details;
 	}
 	

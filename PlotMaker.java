@@ -14,8 +14,8 @@ public class PlotMaker extends JComponent{
 	private double xMax, yMax, xMin, yMin, pointDimensions;;
 	private double xValuesRange , yValuesRange, xGraphValuesRange, yGraphValuesRange;
 	private ArrayList<Ellipse2D.Double> shapes;
-	private ArrayList<Object> dataPointInfo = new ArrayList<Object>();
-	private ArrayList<ArrayList<Object>> AlldataPointInfo = new ArrayList<ArrayList<Object>>();
+	private ArrayList<Double> dataPointInfo;
+	private ArrayList<ArrayList<Double>> AlldataPointInfo;
 	
 	public PlotMaker(){
 		xColumn = 0;
@@ -49,6 +49,9 @@ public class PlotMaker extends JComponent{
 	}
 	
 	private void calculateDimensions() {
+		AlldataPointInfo = new ArrayList<ArrayList<Double>>();
+		System.out.println("Made new alldatapointinfo");
+		
 		height = this.getHeight();
 		width = this.getWidth();
 		axisGap = 55;
@@ -130,7 +133,7 @@ public class PlotMaker extends JComponent{
 		 
 		if (myBondTrade != null) {
 			calculateDimensions();
-			
+			System.out.println("Painting...");
 			
 			Graphics2D g2 = (Graphics2D)g;
 			g2.setColor(Color.BLACK);
@@ -146,9 +149,8 @@ public class PlotMaker extends JComponent{
 				
 				Ellipse2D.Double e = new Ellipse2D.Double(x-(pointDimensions/2), y-(pointDimensions/2), pointDimensions, pointDimensions); //offset to x and y coordinates of shape to make the plot look prettier
 				shapes.add(e);
-				System.out.println("Shape details: x: " + e.x + "y: " + e.y);
 				
-				addData(e, x, y);
+				addData(e);
 	
 				g2.draw(e);
 				g2.fill(e);	
@@ -157,88 +159,33 @@ public class PlotMaker extends JComponent{
 		}
 		
 	}
-	private void addData(Ellipse2D.Double e, double x, double y) {
+	private void addData(Ellipse2D.Double e) {		
+		dataPointInfo = new ArrayList<Double>();
 		
-		dataPointInfo.add(x);
-		dataPointInfo.add(y);
-		dataPointInfo.add(e);
+		dataPointInfo.add(e.x);
+		dataPointInfo.add(e.y);
 		AlldataPointInfo.add(dataPointInfo);
 		
-		for (int i = 0; i < AlldataPointInfo.size(); i++) {
-
-			for (int k = 0; k < AlldataPointInfo.get(i).size(); k++) {
-
-			System.out.println(" " + AlldataPointInfo.get(i).get(k));
-			}
-		}
 		
 	}
 	
-	private double calculateRawxValue(double xCoordinate){
-		//DO THIS LATER
-		//double xPoint = myBondTrade.getColumnValue(xColumn, index) - yMin;
-		//double xResult = (xPoint * xGraphValuesRange) / xValuesRange;
-		//double x = xResult + axisGap;
-		System.out.println("xCoordinate: " + xCoordinate);
-		double xResult = xCoordinate - axisGap;
-		System.out.println("xResult: " + xResult);
-		double xPoint = (xResult * xValuesRange) / xGraphValuesRange;
-		System.out.println("xPoint: " + xPoint);
-		double x = xPoint - xMin;
-		System.out.println("x: " + x);
-		
-		return x;
-		
-	}
-	private double calculateRawyValue(double yCoordinate){
-		//DO THIS LATER
-		//double yPoint = myBondTrade.getColumnValue(yColumn, index) - yMin;
-		//double yResult = (yPoint*yGraphValuesRange) / yValuesRange;
-		//double y = (height - yResult) - axisGap;
-		double yResult = height - (yCoordinate + axisGap);
-		double yPoint = (yResult * yValuesRange) / yGraphValuesRange;
-		double y = (yPoint + yMin);
-		
-		return y;
-		
-	}
 	
 	
 	public int locateClickedShape(double xValueShape, double yValueShape){
-		System.out.println("xValueShape: " + xValueShape);
-		System.out.println("yValueShape: " + yValueShape);
-		//correct to actual x and y values that made shape
-		double xValuePoint = calculateRawxValue(xValueShape + (pointDimensions/2));
-		double yValuePoint = calculateRawyValue(yValueShape + (pointDimensions/2));
-		System.out.println("xValuePoint: " + xValuePoint);
-		System.out.println("yValuePoint: " + yValuePoint);
-		
 		int index = -1;
-		
-		//Search for x Value in BondTrade Values
-		for (int i = 0; i < myBondTrade.getRowCounter()-1; i++){
-			double xValue = myBondTrade.getColumnValue(xColumn, i);
-			System.out.println("xValue: " + xValue + "xValuePoint: " + xValuePoint);
-			
-			if (xValue==xValuePoint) {
-				System.out.println("Found x");
+		//find x and y raw values by locating matches in ArrayList of Array list (3rd and 4th value)
+		for (int i = 0; i < AlldataPointInfo.size(); i++) {
+			if (AlldataPointInfo.get(i).get(0) == xValueShape && AlldataPointInfo.get(i).get(1) == yValueShape) {
+				System.out.println("X value: " + AlldataPointInfo.get(i).get(0) + " = " + xValueShape);
+				System.out.println("Y value: " + AlldataPointInfo.get(i).get(1) + " = " + yValueShape);
 				
-				double yValue = myBondTrade.getColumnValue(yColumn, i);
-				if (yValue==yValuePoint){ //make sure y value also matches
-					System.out.println("Found y");
-					
-					index = i;
-					System.out.println("Found Index" );
-					break;
-				}
+				index = i;
+				System.out.println(index);
+				break;
 			}
 		}
-		System.out.println("Index: " + index);
+		System.out.println(AlldataPointInfo.toString());
 		return index;
-		
-			
-		}
-		
-		
+	}	
 	
 }
