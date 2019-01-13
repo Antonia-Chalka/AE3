@@ -63,15 +63,14 @@ public class BondTrade {
 	 * 2 amountCHF
 	 */
 	
-	public String getBondDetails(double x, double y, int xColumn, int yColumn){
-		
-		int index = 0;
+	public String getBondDetails(int index){
 		
 		
 		String details = "Details of selected Trade: \n"
-				+ headers.get(0) + ": " + yield.get(index) + " \n"
-				+ headers.get(1)  + ": " + daysToMaturity.get(index) + " \n"
-				+ headers.get(2)  + ": "+ amountCHF.get(index) + " \n";
+				+ headers.get(0) + ": " + yield.get(index) + System.lineSeparator()
+				+ headers.get(1)  + ": " + daysToMaturity.get(index) + System.lineSeparator()
+				+ headers.get(2)  + ": "+ amountCHF.get(index);
+		System.out.println(details);
 		return details;
 	}
 	

@@ -17,6 +17,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -33,7 +34,8 @@ public class Main extends JFrame implements ActionListener{
 	private JButton openButton, quitButton;	
 	private PlotMaker plotPanel;	
 	private JComboBox<String> xBox, yBox;
-	private JTextField filenameField, detailField;
+	private JTextField filenameField;
+	private JTextArea detailField;
 	BondTrade myBondTrade = new BondTrade();
 	
 	
@@ -119,13 +121,12 @@ public class Main extends JFrame implements ActionListener{
 		});
 		southPanel.add(yBox);
 		
-		detailField = new JTextField("Trade Details.");
+		detailField = new JTextArea("Trade Details.");
 		detailField.setEditable(false);
-		detailField.setHorizontalAlignment(JTextField.CENTER);
-		detailField.setPreferredSize(new Dimension (250, 50));
+		detailField.setPreferredSize(new Dimension (250, 70));
+		detailField.setColumns(4);
 		southPanel.add(detailField);
 		
-		southPanel.setPreferredSize(new Dimension(40, 70));
 		
 		//At the end
 		this.add(mainPanel);
@@ -195,12 +196,17 @@ public class Main extends JFrame implements ActionListener{
 		ArrayList<Ellipse2D.Double> shapes = plotPanel.returnShapes();
 		for (Ellipse2D.Double shape : shapes) {
 			if (shape.contains(e.getPoint())) {
-				plotPanel.locateClickedShape(shape.x, shape.y);
+				System.out.println("mouse click: " + e.getPoint());
+				System.out.println("shape.x: " + shape.x);
+				System.out.println("shape.y: " + shape.y);
 				
+				index = plotPanel.locateClickedShape(shape.x, shape.y);
+				if (index !=-1){
 
-				System.out.println("Found click!");
-				detailField.setText( myBondTrade.getBondDetails(mousePoint.getX(), mousePoint.getY(), plotPanel.getXColumn(), plotPanel.getXColumn())); 
-				
+					System.out.println("Found click!");
+					detailField.setText( myBondTrade.getBondDetails(index)); 
+				}
+				break;
 			}
 		}
 	}

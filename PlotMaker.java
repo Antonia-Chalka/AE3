@@ -10,10 +10,12 @@ public class PlotMaker extends JComponent{
 	
 	private BondTrade myBondTrade;
 	private int xColumn, yColumn;
-	private int axisGap, height, width, hatchedLineOffset, numofhatches, yOffsetforletters,xOffsetforletters, pointDimensions;
-	private double xMax, yMax, xMin, yMin;
+	private int axisGap, height, width, hatchedLineOffset, numofhatches, yOffsetforletters,xOffsetforletters;
+	private double xMax, yMax, xMin, yMin, pointDimensions;;
 	private double xValuesRange , yValuesRange, xGraphValuesRange, yGraphValuesRange;
 	private ArrayList<Ellipse2D.Double> shapes;
+	private ArrayList<Object> dataPointInfo = new ArrayList<Object>();
+	private ArrayList<ArrayList<Object>> AlldataPointInfo = new ArrayList<ArrayList<Object>>();
 	
 	public PlotMaker(){
 		xColumn = 0;
@@ -111,7 +113,7 @@ public class PlotMaker extends JComponent{
 	}
 	
 	private double calculateGraphxCoordinates(int index){
-		double xPoint = myBondTrade.getColumnValue(xColumn, index) - yMin;
+		double xPoint = myBondTrade.getColumnValue(xColumn, index) - xMin;
 		double xResult = (xPoint * xGraphValuesRange) / xValuesRange;
 		double x = xResult + axisGap;
 		return x;
@@ -139,13 +141,34 @@ public class PlotMaker extends JComponent{
 			// for y and x do  Point/ValuesRange = Result/GraphValuesRange => Result = (Point*GraphValuesRange)/ValuesRange
 			for (int index = 0; index < myBondTrade.getRowCounter()-1; index++){
 				double x = calculateGraphxCoordinates(index);
-				double y = calculateGraphyCoordinates(index);		
+				double y = calculateGraphyCoordinates(index);	
+				
 				
 				Ellipse2D.Double e = new Ellipse2D.Double(x-(pointDimensions/2), y-(pointDimensions/2), pointDimensions, pointDimensions); //offset to x and y coordinates of shape to make the plot look prettier
 				shapes.add(e);
+				System.out.println("Shape details: x: " + e.x + "y: " + e.y);
+				
+				addData(e, x, y);
 	
 				g2.draw(e);
 				g2.fill(e);	
+				
+			}
+		}
+		
+	}
+	private void addData(Ellipse2D.Double e, double x, double y) {
+		
+		dataPointInfo.add(x);
+		dataPointInfo.add(y);
+		dataPointInfo.add(e);
+		AlldataPointInfo.add(dataPointInfo);
+		
+		for (int i = 0; i < AlldataPointInfo.size(); i++) {
+
+			for (int k = 0; k < AlldataPointInfo.get(i).size(); k++) {
+
+			System.out.println(" " + AlldataPointInfo.get(i).get(k));
 			}
 		}
 		
@@ -156,9 +179,13 @@ public class PlotMaker extends JComponent{
 		//double xPoint = myBondTrade.getColumnValue(xColumn, index) - yMin;
 		//double xResult = (xPoint * xGraphValuesRange) / xValuesRange;
 		//double x = xResult + axisGap;
-		double xResult = height - (xCoordinate + axisGap);
+		System.out.println("xCoordinate: " + xCoordinate);
+		double xResult = xCoordinate - axisGap;
+		System.out.println("xResult: " + xResult);
 		double xPoint = (xResult * xValuesRange) / xGraphValuesRange;
+		System.out.println("xPoint: " + xPoint);
 		double x = xPoint - xMin;
+		System.out.println("x: " + x);
 		
 		return x;
 		
@@ -178,20 +205,31 @@ public class PlotMaker extends JComponent{
 	
 	
 	public int locateClickedShape(double xValueShape, double yValueShape){
+		System.out.println("xValueShape: " + xValueShape);
+		System.out.println("yValueShape: " + yValueShape);
 		//correct to actual x and y values that made shape
 		double xValuePoint = calculateRawxValue(xValueShape + (pointDimensions/2));
 		double yValuePoint = calculateRawyValue(yValueShape + (pointDimensions/2));
+		System.out.println("xValuePoint: " + xValuePoint);
+		System.out.println("yValuePoint: " + yValuePoint);
 		
-		int index = 0;
+		int index = -1;
 		
 		//Search for x Value in BondTrade Values
 		for (int i = 0; i < myBondTrade.getRowCounter()-1; i++){
-			Double xValue = myBondTrade.getColumnValue(xColumn, i);
+			double xValue = myBondTrade.getColumnValue(xColumn, i);
+			System.out.println("xValue: " + xValue + "xValuePoint: " + xValuePoint);
+			
 			if (xValue==xValuePoint) {
-				Double yValue = myBondTrade.getColumnValue(yColumn, i);
+				System.out.println("Found x");
+				
+				double yValue = myBondTrade.getColumnValue(yColumn, i);
 				if (yValue==yValuePoint){ //make sure y value also matches
-					i = index;
+					System.out.println("Found y");
+					
+					index = i;
 					System.out.println("Found Index" );
+					break;
 				}
 			}
 		}
