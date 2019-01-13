@@ -40,8 +40,8 @@ public class BondTrade {
 		}
 		
 		allData.add(yield);
-		allData.add(amountCHF);
 		allData.add(daysToMaturity);
+		allData.add(amountCHF);
 	}
 	
 	public int getRowCounter(){
@@ -51,12 +51,6 @@ public class BondTrade {
 	public ArrayList<String> getHeaders() {
 		return headers;
 	}
-	
-	public ArrayList<ArrayList<Double>> createData(){
-		
-		return allData;
-	}
-	
 	
 	/* 0 yield
 	 * 1 daysToMaturity

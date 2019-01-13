@@ -95,12 +95,11 @@ public class Main extends JFrame implements ActionListener{
 		xBox.addItemListener(new ItemListener() {
 					@Override
 					public void itemStateChanged(ItemEvent arg0) {
-						int xColumnIndex = xBox.getSelectedIndex();
-						if (xColumnIndex != -1) {
-							System.out.println("Changed x axis");
-							plotPanel.setXColumn(xColumnIndex);
+						if (xBox.getSelectedIndex() != -1) {
+							plotPanel.setXColumn(xBox.getSelectedIndex());
+							plotPanel.repaint();
 							}
-						plotPanel.repaint();		
+								
 					}
 				});
 		southPanel.add(xBox);
@@ -110,13 +109,10 @@ public class Main extends JFrame implements ActionListener{
 		yBox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
-				int yColumnIndex = yBox.getSelectedIndex();
-				if (yColumnIndex != -1) {
-					System.out.println("Changed x axis");
-					plotPanel.setYColumn(yColumnIndex);
+				if (yBox.getSelectedIndex() != -1) {
+					plotPanel.setYColumn(yBox.getSelectedIndex());
+					plotPanel.repaint();
 					}
-				plotPanel.repaint();
-				
 			}
 		});
 		southPanel.add(yBox);
