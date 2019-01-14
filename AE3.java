@@ -83,8 +83,7 @@ public class AE3 extends JFrame implements ActionListener{
 			public void mouseClicked(MouseEvent e) {
 				checkMouseClick(e);
 			}
-		});
-		
+		});	
 	}
 	
 	//Set up combo boxes and trade details field, their locations and appropriate listeners
@@ -117,8 +116,7 @@ public class AE3 extends JFrame implements ActionListener{
 					}
 			}
 		});
-		
-		
+			
 		detailField = new JTextArea("Choose a trade to see the details.");
 		detailField.setEditable(false);
 		detailField.setColumns(4);
@@ -179,7 +177,8 @@ public class AE3 extends JFrame implements ActionListener{
 			xBox.addItem(header);
 			yBox.addItem(header);	
 		}
-		plotPanel.loadData(myBondTrades); //set up plot panel
+		plotPanel.loadData(myBondTrades); //load bond trade data into plot panel to create scatterplot
+		yBox.setSelectedIndex(1); //set y Combo box to display the 2nd column of data (x combo box displays 1st column by default)	
 	}
 	
 	/*TODO add comments
@@ -192,14 +191,12 @@ public class AE3 extends JFrame implements ActionListener{
 	public void checkMouseClick(MouseEvent e) {
 		for (Ellipse2D.Double shape : plotPanel.getPlotShapes()) { //cycle for each shape
 			if (shape.contains(e.getPoint())) { //if the position of the mouseclick is within a dot on the graph	
-				int index = plotPanel.locateClickedShape(shape.x, shape.y); //this method will return -1 if mouse click does not correspond to a shape
+				int index = plotPanel.locateClickedShapeIndex(shape.x, shape.y); //this method will return -1 if mouse click does not correspond to a shape
 				if (index !=-1){
 					detailField.setText( myBondTrades.getBondDetails(index)); 
 					break;
-				}
-				
+				}	
 			}
 		}
 	}
-
 }

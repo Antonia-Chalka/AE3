@@ -10,181 +10,218 @@ import javax.swing.JComponent;
 @SuppressWarnings("serial") //suppressed warning as it is not necessary for this exercise
 public class PlotMaker extends JComponent{
 	
-	//TODO fix this mess/assign set up as final
-	private BondTradeData myBondTrades;
-	private int xColumn, yColumn;
-	private int axisGap, height, width, hatchedLineOffset, numofhatches, yOffsetforletters,xOffsetforletters;
-	private double xMax, yMax, xMin, yMin, pointDimensions;
-	private double xValuesRange, yValuesRange, xGraphValuesRange, yGraphValuesRange;
+	//following values are arbitrary, assigned to make the graph conform to specifications and for looking aesthetically pleasing 
+	private final int BORDERGAP = 55; //the 'gap' between the edge of the plot panel and the axis
+	private final int HATCHEDLINEOFFSET = 5; //how 'long' a hatched line is
+	private final int NUMOFHATCHES = 10; //how many hatched lines there are, per axis
+	private final int YLABELOFFSET = 5; //used to nicely align the y axis labels
+	private final int XLABELOFFSET = 45; //used to nicely align the x axis labels
+	private final double DOTPOSITIONCORRECTION = 5; //used to make sure that the scaled x and y positions the centre of the graph dots instead of being the 'edge' by default 
 	
+	//Values relating to graph data points
+	private BondTradeData myBondTrades; //used to obtain raw values
+	private int xColumn, yColumn; //used to indicate which category (e.h. yield) to pick values from for each axis. are initialised automatically
+	private int height, width; //height and width of the graph
+	private double xMax, xMin, xValuesRange, xGraphValuesRange; //used to scale the labels and points appropriately for the x axis
+	private double yMax, yMin, yValuesRange, yGraphValuesRange; //used to scale the labels and points appropriately for the y axis
 	
-	private ArrayList<Ellipse2D.Double> shapes;
-	private ArrayList<Double> dataPointInfo; //TODO maybe remove?
-	private ArrayList<ArrayList<Double>> AlldataPointInfo;
+	private ArrayList<Double> dataPointInfo; //an array of graph point coordinates and their raw values; used to load data into array list below, initialised at each graph point
+	private ArrayList<ArrayList<Double>> pairedRawAndCoordinateData;//list of graph point coordinates and their raw values, initialised at each redraw
+	private ArrayList<Ellipse2D.Double> shapes; //array list of all dots on graph, used for mouse clicker, initialised at each redraw
 	
-	//TODO see if more needs to be added + comment
+	//Constructor
 	public PlotMaker(){
-		xColumn = 0;
-		yColumn = 0;
-		shapes = new ArrayList<>();
 	}
 	
-	//TODO comment
+	//Setter for bond trades; this variables are then used to create the graph
 	public void loadData(BondTradeData myBondTrade) {
 		this.myBondTrades = myBondTrade;
 		repaint();
 	}
 	
-	//TODO jesuschrist
-	private void calculateDimensions() {
-		AlldataPointInfo = new ArrayList<ArrayList<Double>>();
+	/* Paint method. If a bond trade is loaded into a plotmaker instance (myBondTrades != null), then only will it draw a scatteplot  
+	 * 1. it calls a method that performs calculation for the data points (Max, Min, range of values etc)
+	 * 2. It draws the axis, hatched lines and labels
+	 * 3. For each point in the scatterplot:
+	 * 		3.1 scale the raw values into x and y coordinates
+	 * 		3.2 create a shape that will be the dot to the graph
+	 * 		3.3 add the shape and its related values into the appropriate arrays, to be used when retrieving details of a specific trade (ie of  a specific dot/shape)
+	 */
+	public void paintComponent(Graphics g){
+		 super.paintComponent(g);
+		 Graphics2D g2 = (Graphics2D)g;
+		 g2.setColor(Color.BLACK);
+		
+		
+		if (myBondTrades != null) { //only paint when a bond trade is loaded into the graph
+			performCalculations();	// calculate variables	 
+			drawGraphComponents(g2); //draw axis/boxed area, hatched lines, and labels
+			
+			for (int index = 0; index < myBondTrades.getRowCounter(); index++){ //loop for each point
+				//obtain raw values for x and y and scale them
+				double x = calculateGraphxCoordinates(index); 
+				double y = calculateGraphyCoordinates(index);	
+				
+				
+				//offset to x and y coordinates of shape to make the plot look prettier
+				Ellipse2D.Double e = new Ellipse2D.Double(x-(DOTPOSITIONCORRECTION/2), y-(DOTPOSITIONCORRECTION/2), DOTPOSITIONCORRECTION, DOTPOSITIONCORRECTION); 
+				g2.draw(e);
+				g2.fill(e);
+				
+				shapes.add(e);
+				addPairedData(e,myBondTrades.getColumnValue(xColumn, index), myBondTrades.getColumnValue(yColumn, index));
+				
+			}
+		}
+		
+	}
+
+	//This method calculates and initialises values necessary for scaling and for relating raw values to their scatterplot dots
+	private void performCalculations() {
+		//Needs to be reinitialized any time the graph is redrawn
+		pairedRawAndCoordinateData = new ArrayList<ArrayList<Double>>();
+		shapes = new ArrayList<>();
 	
 		height = this.getHeight();
 		width = this.getWidth();
-		axisGap = 55;
-		hatchedLineOffset = 5;
-		numofhatches =10;
-		yOffsetforletters = 5;
-		xOffsetforletters = 45;
-		pointDimensions = 5;
+		
 		xMax = myBondTrades.getMaxValue(xColumn);
 		xMin = myBondTrades.getMinValue(xColumn);
 	
 		yMax = myBondTrades.getMaxValue(yColumn);
 		yMin = myBondTrades.getMinValue(yColumn);
+		
+		//to be used in scaling using the 'rule of three', essentially the range of values for raw data
 		xValuesRange = xMax - xMin;
 		yValuesRange = yMax - yMin;
 		
-		xGraphValuesRange = width - 2 * axisGap;
-		yGraphValuesRange = height - 2 * axisGap;
-		
+		//to be used in scaling using the 'rule of three', essentially the range of values for the scatterplot area
+		xGraphValuesRange = width - 2 * BORDERGAP;
+		yGraphValuesRange = height - 2 * BORDERGAP;	
 	}
 	
-	//TODO Comment the shit out of this
-	private void drawAxis(Graphics2D g2) {
+	//This method draws the axis, boxed aeras, labels and hatched lines
+	private void drawGraphComponents(Graphics2D g2) {
 		//Draw box in graph area
-		g2.drawLine(axisGap, height - axisGap, axisGap, axisGap); //y axis
-	    g2.drawLine(axisGap, height - axisGap, width - axisGap, height - axisGap); //x axis
-	    g2.drawLine(axisGap, axisGap, width-axisGap, axisGap); 
-	    g2.drawLine(width-axisGap, axisGap, width-axisGap, height-axisGap);
+		g2.drawLine(BORDERGAP, height - BORDERGAP, BORDERGAP, BORDERGAP); //y axis
+	    g2.drawLine(BORDERGAP, height - BORDERGAP, width - BORDERGAP, height - BORDERGAP); //x axis
+	    g2.drawLine(BORDERGAP, BORDERGAP, width-BORDERGAP, BORDERGAP);  //line to complete box area
+	    g2.drawLine(width-BORDERGAP, BORDERGAP, width-BORDERGAP, height-BORDERGAP); //line to complete box area
 	    
-	    double yLabelOffset = (yMax-yMin)/(numofhatches); 
-	    double xLabelOffset = (xMax-xMin)/(numofhatches);
+	    //Calculate the offset between each value of the labels (eg an offset for one would have xLabel1 =1, xLabel2 = 2 etc)
+	    double yLabelOffset = (yMax-yMin)/(NUMOFHATCHES); 
+	    double xLabelOffset = (xMax-xMin)/(NUMOFHATCHES);
 	    
 	    //Draw hatched lines and text across the two axis
-	    //Y axis: (y of hatched line does not change (y0))
-	    for (int i = 0; i <= numofhatches; i++) {
-	        int x1 = axisGap-hatchedLineOffset;
-	        int y0 = (int) (height - (axisGap + ((double) (height - (axisGap * 2)) * i) / numofhatches ));
-	        g2.drawLine(axisGap, y0, x1, y0); //draw hatched line
-
-	        double yLabel = yMin + yLabelOffset * i; //calculate plot value at hatch line position
-			g2.drawString(String.format("%.1f", yLabel), x1-xOffsetforletters, (int) (y0 + yOffsetforletters)); //add values close to each hatched line
+	    for (int i = 0; i <= NUMOFHATCHES; i++) { //Y axis hatches
+	        int x1 = BORDERGAP-HATCHEDLINEOFFSET; //find the endpoint from the hatch as it extends from the axis
+	        
+	        //mathematical expression to determine position along y axis of each hatched line
+	        int y = (int) (height - (BORDERGAP + ((double) (height - (BORDERGAP * 2)) * i) / NUMOFHATCHES )); 
+	        
+	        /*To draw a hatch, the following have been calculated: x0, y0, x1, y1
+	         * x0: bordergap as each hatched line would start from the axis
+	         * x1: as mentioned above
+	         * The y coordinates of a y axis gap won't change (straight line), so: y0 = y1 = y
+	         * y has been calculated as mentioned above
+	         */
+	        g2.drawLine(BORDERGAP, y, x1, y);
+	        
+	        double yLabel = yMin + yLabelOffset * i; //calculate label value at hatch line position
+	        
+	        //add values to each hatched line and format with appropriate coordinate offsets
+			g2.drawString(String.format("%.1f", yLabel), x1-XLABELOFFSET, (int) (y + YLABELOFFSET)); 
 	      }
 
-	    //X axis (x of hatched line does not change (x0))
-	    for (int i = 0; i <= numofhatches; i++) {
-	        int x0 = (int) (axisGap + ((double) (width - (axisGap * 2)) / numofhatches)*i);      
-	        int y0 = height - axisGap;
-	        int y1 = y0 + hatchedLineOffset;
-	        g2.drawLine(x0, y0, x0, y1); //draw hatched line
-	         
+	    for (int i = 0; i <= NUMOFHATCHES; i++) { //x axis hatches
+	    	//mathematical expression to determine position along x axis of each hatched line
+	        int x = (int) (BORDERGAP + ((double) (width - (BORDERGAP * 2)) / NUMOFHATCHES)*i); 
+	        
+	        int y0 = height - BORDERGAP; //account for the fact that in swing y=0 is at the top of the panel instead of the bottom
+	        int y1 = y0 + HATCHEDLINEOFFSET;  //find the endpoint from the hatch as it extends from the axis
+	        
+	        /*To draw a hatch, the following have been calculated: x0, y0, x1, y1
+	         *The x coordinates of a x axis gap won't change (straight line), so: x0 = x1 = x
+	         * x has been calculated as mentioned above 
+	         * y1: as mentioned above
+	         * y0: as mentioned above 
+	         */
+	        g2.drawLine(x, y0, x, y1); 
+	        
 	        double xLabel =  xMin + xLabelOffset * i;    //calculate plot value at hatch line position
-			g2.drawString(String.format("%.1f", xLabel), x0 - 5, y1+15); //add values close to each hatched line
+			g2.drawString(String.format("%.1f", xLabel), x - 5, y1+15); //add values close to each hatched line
 	      }
-		
 	}
 	
-	/*TODO comment the shot out of this too
-	* Scale using 'rule of three': the value of one unknown quantity in a proportion is found by multiplying the denominator of each ratio by the numerator of the other
-	* Alternatively:  Point/ValuesRange = Result/GraphValuesRange => Result = (Point*GraphValuesRange)/ValuesRange (RENAME)
+	/* This method scales the value to an x coordinate in the scatterplot. There are three steps to the process:
+	* 1. Obtain the raw value and find its offset from the minimal value
+	* 2. Scale using 'rule of three', i.e.:
+	* 	 xResult /xGraphValuesRange = xAbsoluteRawValue / xValuesRange => xResult = (xAbsoluteRawValue * xGraphValuesRange) / xValuesRange
+	* 3. Correct the position of the x value due to the gaps between the plot's border area and the axis
 	*/
-	
 	private double calculateGraphxCoordinates(int index){
-		double xPoint = myBondTrades.getColumnValue(xColumn, index) - xMin;
-		double xResult = (xPoint * xGraphValuesRange) / xValuesRange;
-		double x = xResult + axisGap;
-		return x;
+		double xAbsoluteRawValue = myBondTrades.getColumnValue(xColumn, index) - xMin; //find distance of raw value from the minimum value in its column
+		double xResult = (xAbsoluteRawValue * xGraphValuesRange) / xValuesRange; //scale using rule of three
+		double xCoordinate = xResult + BORDERGAP; //account for the border areas to find the actual spot on the plot the value belongs to
+		return xCoordinate;
 	}
 	
-	/*TODO comment the shot out of this too
-	 * 
-	 * Scaled using 'rule of three' described above.
-	 * mention difference is because the 0 point of the y scale is at the top of the graph (need to invert it)
+	/*This method scales the value to an y coordinate in the scatterplot. There are three steps to the process:
+	* 1. Obtain the raw value and find its offset from the minimal value
+	* 2. Scale using 'rule of three', i.e.:
+	* 	 yResult /yGraphValuesRange = yAbsoluteRawValue / yValuesRange => yResult = (yAbsoluteRawValue * yGraphValuesRange) / yValuesRange
+	* 3. Correct the position of the y value due to the gaps between the plot's border area and the axis
 	 */
 	private double calculateGraphyCoordinates(int index){
-		double yPoint = myBondTrades.getColumnValue(yColumn, index) - yMin;
-		double yResult = (yPoint * yGraphValuesRange) / yValuesRange;
-		double y = (height - yResult) - axisGap;
+		double yPoint = myBondTrades.getColumnValue(yColumn, index) - yMin; //find distance of raw value from the minimum value in its column
+		double yResult = (yPoint * yGraphValuesRange) / yValuesRange;  //scale using rule of three
+		double y = (height - yResult) - BORDERGAP; //account for the border areas to find the actual spot on the plot the value belongs to
 		return y;
 	}
 	
-	/*TODO comment and refractor
-	 * (non-Javadoc)
-	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
-	 * Paint component
-	 * 
-	 * 
-	 */
-	public void paintComponent(Graphics g){
-		 super.paintComponent(g);
-		 
-		if (myBondTrades != null) { //only paint when a bondtrade is loaded into the graph
-			calculateDimensions();	
-			Graphics2D g2 = (Graphics2D)g;
-			g2.setColor(Color.BLACK); 
-			drawAxis(g2); //draw axis/boxed area, hatched lines, and labels
-			
-			
-			//Loop for each point
-			for (int index = 0; index < myBondTrades.getRowCounter(); index++){
-				double x = calculateGraphxCoordinates(index);
-				double y = calculateGraphyCoordinates(index);	
-				
-				Ellipse2D.Double e = new Ellipse2D.Double(x-(pointDimensions/2), y-(pointDimensions/2), pointDimensions, pointDimensions); //offset to x and y coordinates of shape to make the plot look prettier
-				g2.draw(e);
-				g2.fill(e);
-				
-				shapes.add(e);
-				addData(e,myBondTrades.getColumnValue(xColumn, index), myBondTrades.getColumnValue(yColumn, index));	
-			}
-		}
-		
-	}
 	
-	//TODO comment
-	private void addData(Ellipse2D.Double e, double rawX, double rawY) {		
-		dataPointInfo = new ArrayList<Double>();
-		
+	//This method creates an array that lists a shape's (ie point on the scatterplot) x and y coordinates, along with the original x and y values
+	private void addPairedData(Ellipse2D.Double e, double rawX, double rawY) {		
+		dataPointInfo = new ArrayList<Double>(); //initialise for each point		
 		dataPointInfo.add(e.x);
 		dataPointInfo.add(e.y);
 		dataPointInfo.add(rawX);
 		dataPointInfo.add(rawY);
-		AlldataPointInfo.add(dataPointInfo);
+		pairedRawAndCoordinateData.add(dataPointInfo); //add array to collection of array lists
 	}
+		
+	/*This method takes in the coordinates of a clicked shape (determined my mouselistener in AE3)
+	 * The method uses the pairedRawAndCoordinateData to locate with in it an array that contains the shape's x and y coordinates
+	 * When such an array is found, the methods then obtains the 'raw' values associated with the shape's x and y coordinates and
+	 * goes through the bond trade data to find the index in terms of bond trade. 
+	 * In the end, the method returns the index of the bond data of the clicked shape, allowing the location of the trade details in other methods
+	 * If the shape's index cannot be determined, the method return -1
+	 */
 	
-	
-	//TODO comment and maybe refractor
-	public int locateClickedShape(double xValueShape, double yValueShape){
+	public int locateClickedShapeIndex(double xClickedShape, double yClickedShape){
 		int index = -1;
 		//find x and y raw values by locating matches in ArrayList of Array list (3rd and 4th value)
-		for (int i = 0; i < AlldataPointInfo.size(); i++) {
-			if (AlldataPointInfo.get(i).get(0) == xValueShape && AlldataPointInfo.get(i).get(1) == yValueShape) {
-				//found x and y, search for index in Bond trade
-				for (int indexBond =0; indexBond < myBondTrades.getRowCounter(); indexBond++) {
-					if (AlldataPointInfo.get(i).get(2) == myBondTrades.getColumnValue(xColumn, indexBond) 
-							&& AlldataPointInfo.get(i).get(3) == myBondTrades.getColumnValue(yColumn, indexBond)) {		
+		for (int i = 0; i < pairedRawAndCoordinateData.size(); i++) { //loop for each data point
+			
+			//check if the x and y coordinates of the shape match the x and y coordinates of the shape clicked by the mouse
+			if (pairedRawAndCoordinateData.get(i).get(0) == xClickedShape && pairedRawAndCoordinateData.get(i).get(1) == yClickedShape) { 
+				
+				for (int indexBond =0; indexBond < myBondTrades.getRowCounter(); indexBond++) { //if shape coordinates match, then loop again for each point/trade
+					
+					//check if the stored raw values for the clicked shape matches those of a bond trade in the appropriate columns
+					if (pairedRawAndCoordinateData.get(i).get(2) == myBondTrades.getColumnValue(xColumn, indexBond) 
+							&& pairedRawAndCoordinateData.get(i).get(3) == myBondTrades.getColumnValue(yColumn, indexBond)) {	
 						index = indexBond;	
+						break;
 					}	
 				}
-				break;
+				
 			}
 		}
-		return index;
+		return index; //index of values of the clicked shape
 	}
 	
-	//TODO comment
-	//Getter for array list of plot shapes, used 
+	//Getter for array list of plot shapes, used in order to see if user click has occurred in any of the graph dots
 	public ArrayList<Ellipse2D.Double> getPlotShapes(){
 		return shapes;
 	}

@@ -37,11 +37,9 @@ public class BondTradeData {
 		} else { //parse values from strings into doubles and insert them in the appropriate arraylist
 			column1.add(Double.parseDouble(filelineArray[0]));
 			column2.add(Double.parseDouble(filelineArray[1]));
-			column3.add(Double.parseDouble(filelineArray[2]));
-			
+			column3.add(Double.parseDouble(filelineArray[2]));		
 			rowCounter++;
-		}
-		
+		}	
 		allBondTradeData.add(column1);
 		allBondTradeData.add(column2);
 		allBondTradeData.add(column3);
@@ -63,7 +61,7 @@ public class BondTradeData {
 	 */
 	public double getColumnValue(int column, int index) {
 		return allBondTradeData.get(column).get(index);
-		}
+	}
 	
 	//Returns biggest value of a specified type of value (e.g. yield) across all bond trades.
 	public double getMaxValue(int column){
@@ -84,7 +82,5 @@ public class BondTradeData {
 				+ headers.get(1)  + ": " + column2.get(index) + "," + System.lineSeparator()
 				+ headers.get(2)  + ": "+ column3.get(index) + ".";
 		return details;
-	}
-	
-	
+	}	
 }
