@@ -193,10 +193,12 @@ public class AE3 extends JFrame implements ActionListener{
 			if (shape.contains(e.getPoint())) { //if the position of the mouseclick is within a dot on the graph	
 				int index = plotPanel.locateClickedShapeIndex(shape.x, shape.y); //this method will return -1 if mouse click does not correspond to a shape
 				if (index !=-1){
-					detailField.setText( myBondTrades.getBondDetails(index)); 
+					detailField.setText(myBondTrades.getBondDetails(index)); 
 					break;
-				}	
-			}
+				}
+			} else {
+				detailField.setText("Click did not correspond to a trade.");
+				}
 		}
 	}
 }
